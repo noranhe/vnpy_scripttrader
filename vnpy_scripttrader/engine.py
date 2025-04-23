@@ -2,7 +2,8 @@ import sys
 import importlib
 import traceback
 from types import ModuleType
-from typing import Optional, Sequence, Any, List
+from typing import Any
+from collections.abc import Sequence
 from pathlib import Path
 from datetime import datetime
 from threading import Thread
@@ -108,7 +109,7 @@ class ScriptEngine(BaseEngine):
         order_type: OrderType
     ) -> str:
         """"""
-        contract: Optional[ContractData] = self.get_contract(vt_symbol)
+        contract: ContractData | None = self.get_contract(vt_symbol)
         if not contract:
             return ""
 
@@ -129,7 +130,7 @@ class ScriptEngine(BaseEngine):
     def subscribe(self, vt_symbols) -> None:
         """"""
         for vt_symbol in vt_symbols:
-            contract: Optional[ContractData] = self.main_engine.get_contract(vt_symbol)
+            contract: ContractData | None = self.main_engine.get_contract(vt_symbol)
             if contract:
                 req: SubscribeRequest = SubscribeRequest(
                     symbol=contract.symbol,
@@ -179,14 +180,14 @@ class ScriptEngine(BaseEngine):
 
     def cancel_order(self, vt_orderid: str) -> None:
         """"""
-        order: Optional[OrderData] = self.get_order(vt_orderid)
+        order: OrderData | None = self.get_order(vt_orderid)
         if not order:
             return
 
         req: CancelRequest = order.create_cancel_request()
         self.main_engine.cancel_order(req, order.gateway_name)
 
-    def get_tick(self, vt_symbol: str, use_df: bool = False) -> Optional[TickData]:
+    def get_tick(self, vt_symbol: str, use_df: bool = False) -> TickData | None:
         """"""
         return get_data(self.main_engine.get_tick, arg=vt_symbol, use_df=use_df)
 
@@ -194,7 +195,7 @@ class ScriptEngine(BaseEngine):
         """"""
         ticks: list = []
         for vt_symbol in vt_symbols:
-            tick: Optional[TickData] = self.main_engine.get_tick(vt_symbol)
+            tick: TickData | None = self.main_engine.get_tick(vt_symbol)
             ticks.append(tick)
 
         if not use_df:
@@ -202,7 +203,7 @@ class ScriptEngine(BaseEngine):
         else:
             return to_df(ticks)
 
-    def get_order(self, vt_orderid: str, use_df: bool = False) -> Optional[OrderData]:
+    def get_order(self, vt_orderid: str, use_df: bool = False) -> OrderData | None:
         """"""
         return get_data(self.main_engine.get_order, arg=vt_orderid, use_df=use_df)
 
@@ -210,7 +211,7 @@ class ScriptEngine(BaseEngine):
         """"""
         orders: list = []
         for vt_orderid in vt_orderids:
-            order: Optional[OrderData] = self.main_engine.get_order(vt_orderid)
+            order: OrderData | None = self.main_engine.get_order(vt_orderid)
             orders.append(order)
 
         if not use_df:
@@ -221,7 +222,7 @@ class ScriptEngine(BaseEngine):
     def get_trades(self, vt_orderid: str, use_df: bool = False) -> Sequence[TradeData]:
         """"""
         trades: list = []
-        all_trades: List[TradeData] = self.main_engine.get_all_trades()
+        all_trades: list[TradeData] = self.main_engine.get_all_trades()
 
         for trade in all_trades:
             if trade.vt_orderid == vt_orderid:
@@ -236,7 +237,7 @@ class ScriptEngine(BaseEngine):
         """"""
         return get_data(self.main_engine.get_all_active_orders, use_df=use_df)
 
-    def get_contract(self, vt_symbol, use_df: bool = False) -> Optional[ContractData]:
+    def get_contract(self, vt_symbol, use_df: bool = False) -> ContractData | None:
         """"""
         return get_data(self.main_engine.get_contract, arg=vt_symbol, use_df=use_df)
 
@@ -244,7 +245,7 @@ class ScriptEngine(BaseEngine):
         """"""
         return get_data(self.main_engine.get_all_contracts, use_df=use_df)
 
-    def get_account(self, vt_accountid: str, use_df: bool = False) -> Optional[AccountData]:
+    def get_account(self, vt_accountid: str, use_df: bool = False) -> AccountData | None:
         """"""
         return get_data(self.main_engine.get_account, arg=vt_accountid, use_df=use_df)
 
@@ -252,7 +253,7 @@ class ScriptEngine(BaseEngine):
         """"""
         return get_data(self.main_engine.get_all_accounts, use_df=use_df)
 
-    def get_position(self, vt_positionid: str, use_df: bool = False) -> Optional[PositionData]:
+    def get_position(self, vt_positionid: str, use_df: bool = False) -> PositionData | None:
         """"""
         return get_data(self.main_engine.get_position, arg=vt_positionid, use_df=use_df)
 
@@ -277,7 +278,7 @@ class ScriptEngine(BaseEngine):
         use_df: bool = False
     ) -> Sequence[BarData]:
         """"""
-        contract: Optional[ContractData] = self.main_engine.get_contract(vt_symbol)
+        contract: ContractData | None = self.main_engine.get_contract(vt_symbol)
         if not contract:
             return []
 
@@ -308,7 +309,7 @@ class ScriptEngine(BaseEngine):
         self.main_engine.send_email(subject, msg)
 
 
-def to_df(data_list: Sequence) -> Optional[DataFrame]:
+def to_df(data_list: Sequence) -> DataFrame | None:
     """"""
     if not data_list:
         return None
@@ -317,7 +318,7 @@ def to_df(data_list: Sequence) -> Optional[DataFrame]:
     return DataFrame(dict_list)
 
 
-def get_data(func: callable, arg: Any = None, use_df: bool = False) -> Optional[BaseData]:
+def get_data(func: callable, arg: Any = None, use_df: bool = False) -> BaseData | None:
     """"""
     if not arg:
         data = func()
