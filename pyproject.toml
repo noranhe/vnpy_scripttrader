@@ -1,7 +1,7 @@
 [project]
 name = "vnpy_scripttrader"
 dynamic = ["version"]
-description = "Algorithm trading application for VeighNa quant trading framework."
+description = "Script trading application for VeighNa quant trading framework."
 readme = "README.md"
 license = {text = "MIT"}
 authors = [{name = "Xiaoyou Chen", email = "xiaoyou.chen@mail.vnpy.com"}]
